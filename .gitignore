@@ -1,0 +1,6 @@
+*.suo
+*.user
+_ReSharper.Caches/
+bin/
+obj/
+packages/
