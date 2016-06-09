@@ -154,7 +154,7 @@ namespace Softengi.UbClient
 
 		public string Run(string ubAppMethod, Dictionary<string, string> queryStringParams, Stream data)
 		{
-			if (_isAuthenticated)
+			if (!_isAuthenticated)
 				Auth();
 
 			try
