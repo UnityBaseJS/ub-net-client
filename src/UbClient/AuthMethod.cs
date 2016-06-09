@@ -10,22 +10,36 @@ namespace Softengi.UbClient
 		/// <param name="login">User login.</param>
 		/// <param name="password">User password.</param>
 		/// <param name="appName">Name of UB app, or "/", if UB hosted at root.</param>
-		static public UbAuthenticationMethodBase Ub(string login, string password, string appName = "/")
+		static public AuthenticationBase Ub(string login, string password, string appName = "/")
 		{
 			//var localPath = baseUri.LocalPath;
 			//appName = localPath == "/" ? "/" : localPath.Trim('/').ToLower();
 
-			return new UbAuthenticationMethod(login, password, appName);
+			return new UbAuthentication(login, password, appName);
 		}
 
-		static public UbAuthenticationMethodBase UbIp(string login)
+		static public AuthenticationBase UbIp(string login)
 		{
-			return new UbIpAuthenticationMethod(login);
+			return new UbIpAuthentication(login);
 		}
 
-		static public UbAuthenticationMethodBase Negotiate()
+		// TODO: ???!!
+		static public AuthenticationBase Kerberos(string password)
 		{
-			return new UbNegotiateAuthenticationMethod();
+			return new KerberosAuthentication(password);
 		}
+
+		/*
+
+		/// <summary>
+		/// Not supported yet at .Net client.
+		/// </summary>
+		Cert,
+
+		/// <summary>
+		/// Not supported yet at .Net client.
+		/// </summary>
+		Basic
+		 */
 	}
 }

@@ -14,17 +14,16 @@ using Softengi.UbClient.Sessions;
 
 namespace Softengi.UbClient
 {
-	// TODO: merge session and authentication method into the same class
 	// TODO: query constructing syntax
 	// TODO: linq to UB
 
 	public class UbConnection
 	{
-		public UbConnection(Uri baseUri, UbAuthenticationMethodBase authMethod)
+		public UbConnection(Uri baseUri, AuthenticationBase auth)
 		{
 			_transport = new UbTransport(baseUri);
 			_baseUri = baseUri;
-			_authMethod = authMethod;
+			_auth = auth;
 		}
 
 		public IOrderedQueryable<T> Query<T>(string entityName)
@@ -43,7 +42,7 @@ namespace Softengi.UbClient
 		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo,
 			bool base64Response = false)
 		{
-			if (string.IsNullOrEmpty(_headersAuthorization))
+			if (!_isAuthenticated)
 				Auth();
 
 			var documentQueryParams = new Dictionary<string, string>
@@ -155,7 +154,7 @@ namespace Softengi.UbClient
 
 		public string Run(string ubAppMethod, Dictionary<string, string> queryStringParams, Stream data)
 		{
-			if (string.IsNullOrEmpty(_headersAuthorization))
+			if (_isAuthenticated)
 				Auth();
 
 			try
@@ -219,8 +218,11 @@ namespace Softengi.UbClient
 
 		private void Auth()
 		{
-			_headersAuthorization = _authMethod.Authenticate(_transport).AuthHeader();
+			_auth.Authenticate(_transport);
+			_isAuthenticated = true;
 		}
+
+		private bool _isAuthenticated;
 
 		private string Get(string url, Dictionary<string, string> queryStringParams, bool sendCredentials,
 			bool base64Response = false)
@@ -243,16 +245,11 @@ namespace Softengi.UbClient
 
 		private Dictionary<string, string> GetRequestHeaders()
 		{
-			return !string.IsNullOrEmpty(_headersAuthorization)
-				? new Dictionary<string, string> {{"Authorization", _headersAuthorization}}
-				: null;
+			return new Dictionary<string, string> {{"Authorization", _auth.AuthHeader()}};
 		}
 
 		private readonly Uri _baseUri;
-		private readonly UbAuthenticationMethodBase _authMethod;
-
-		private string _headersAuthorization;
-		private UbSession _ubSession;
+		private readonly AuthenticationBase _auth;
 		private readonly UbTransport _transport;
 
 		public class AuthResponse

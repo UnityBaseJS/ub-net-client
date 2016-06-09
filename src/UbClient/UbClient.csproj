@@ -100,12 +100,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthMethod.cs" />
-    <Compile Include="Crc32Algorithm.cs" />
-    <Compile Include="CryptoHelper.cs" />
+    <Compile Include="Sessions\Crc32Algorithm.cs" />
     <Compile Include="Dto\RunListSetDocumentResponse.cs" />
     <Compile Include="Dto\UbDocumentInfo.cs" />
-    <Compile Include="Sessions\UbAuthenticationMethodBase.cs" />
-    <Compile Include="Sessions\UbIpAuthenticationMethod.cs" />
+    <Compile Include="Sessions\AuthenticationBase.cs" />
+    <Compile Include="Sessions\Crypto.cs" />
+    <Compile Include="Sessions\KerberosAuthentication.cs" />
+    <Compile Include="Sessions\UbIpAuthentication.cs" />
     <Compile Include="Sessions\UbTransport.cs" />
     <Compile Include="Linq\Evaluator.cs" />
     <Compile Include="Linq\ExpressionTreeHelpers.cs" />
@@ -119,15 +120,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Dto\ResultDataResponse.cs" />
     <Compile Include="Dto\RunListResponse.cs" />
-    <Compile Include="Sessions\UbIpSession.cs" />
-    <Compile Include="Sessions\UbNegotiateSession.cs" />
-    <Compile Include="Sessions\UbAuthenticationMethod.cs" />
-    <Compile Include="UbAuthSchema.cs" />
+    <Compile Include="Sessions\UbAuthentication.cs" />
     <Compile Include="UbConnection.cs" />
     <Compile Include="UbException.cs" />
     <Compile Include="UbFilter.cs" />
     <Compile Include="UbFilterClause.cs" />
-    <Compile Include="Sessions\UbSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

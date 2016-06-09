@@ -4,21 +4,26 @@ using Newtonsoft.Json;
 
 namespace Softengi.UbClient.Sessions
 {
-	internal class UbIpAuthenticationMethod : UbAuthenticationMethodBase
+	internal class UbIpAuthentication : AuthenticationBase
 	{
-		internal UbIpAuthenticationMethod(string login)
+		internal UbIpAuthentication(string login)
 		{
 			_login = login;
 		}
 
-		internal override UbSession Authenticate(UbTransport transport)
+		internal override void Authenticate(UbTransport transport)
 		{
 			var requestHeaders = new Dictionary<string, string> {{"Authorization", $"UBIP {_login}"}};
 			var resp = transport.Get<UbIpAuthResponse>("auth", null, requestHeaders, false);
-			return new UbIpSession(resp.LogonName, resp.SecretWord, resp.SessionID);
+			_login = resp.LogonName;
 		}
 
-		private readonly string _login;
+		internal override string AuthHeader()
+		{
+			return "UBIP " + _login;
+		}
+
+		private string _login;
 
 		public class UbIpAuthResponse
 		{
