@@ -19,6 +19,9 @@ namespace UbClient.UnitTests
 		public void TestLinq()
 		{
 			var cn = new UbConnection(new Uri("http://localhost:888"), AuthMethod.Ub("admin", "admin"));
+
+			var newId = cn.GetId("uba_user");
+
 			var queryable = cn.Query<Sample>("smp_sample");
 			var expr = from s in queryable
 					   where s.Name == "ttt1"

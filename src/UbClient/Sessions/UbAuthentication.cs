@@ -43,17 +43,19 @@ namespace Softengi.UbClient.Sessions
 
 			var secondResonse = transport.Get<UbAuthSecondResponse>("auth", secondQueryString, null, true);
 			_sessionID = Crypto.Hexa8(secondResonse.SessionID.Split('+')[0]);
+			_secretWord = secondResonse.SessionID;
 		}
 
 		internal override string AuthHeader()
 		{
-			return "UB " + Crypto.Signature(_sessionID, _passwordHash);
+			return "UB " + Crypto.Signature(_sessionID, _secretWord, _passwordHash);
 		}
 
 		private readonly string _login;
 		private readonly string _appName;
 		private readonly string _passwordHash;
 		private string _sessionID;
+		private string _secretWord;
 
 		public class UbHandShakeAuthResponse
 		{

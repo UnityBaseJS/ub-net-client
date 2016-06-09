@@ -20,16 +20,18 @@ namespace Softengi.UbClient.Sessions
 					{"userName", string.Empty}
 				};
 			var resp = transport.Get<NegotiateAuthResponse>("auth", queryStringParams, null, true);
+			_secretWord = resp.SessionID;
 			_sessionID = Crypto.Hexa8(resp.SessionID.Split('+')[0]);
 		}
 
 		internal override string AuthHeader()
 		{
-			return "Negotiate " + Crypto.Signature(_sessionID, _passwordHash);
+			return "Negotiate " + Crypto.Signature(_sessionID, _secretWord, _passwordHash);
 		}
 
 		private string _sessionID;
 		private readonly string _passwordHash;
+		private string _secretWord;
 
 		public class NegotiateAuthResponse
 		{
