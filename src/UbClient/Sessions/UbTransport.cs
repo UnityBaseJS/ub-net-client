@@ -6,28 +6,45 @@ using System.Net;
 using System.Security.Principal;
 using System.Web;
 
-namespace Softengi.UbClient
+using Newtonsoft.Json;
+
+namespace Softengi.UbClient.Sessions
 {
-	static internal class HttpHelper
+	internal class UbTransport
 	{
-		static internal string Xhr(
-			Uri baseUri, string httpMethod, string url,
-			Dictionary<string, string> queryStringParams,
-			Dictionary<string, string> requestHeaders,
-			bool sendCredentials, Stream data = null, bool base64Response = false)
+		internal UbTransport(Uri uri)
 		{
-			var uri = BuildUri(baseUri, url, queryStringParams);
-			return Xhr(uri, httpMethod, requestHeaders, sendCredentials, data, base64Response);
+			_uri = uri;
 		}
 
-		static internal string Xhr(Uri uri, string httpMethod, Dictionary<string, string> requestHeaders, bool sendCredentials,
-			Stream data, bool base64Response = false)
+		internal T Get<T>(
+			string appMethod,
+			Dictionary<string, string> queryStringParams,
+			Dictionary<string, string> requestHeaders,
+			bool sendCredentials, bool base64Response = false)
 		{
-			var request = WebRequest.Create(uri);
+			return JsonConvert.DeserializeObject<T>(Get(appMethod, queryStringParams, requestHeaders, sendCredentials, base64Response));
+		}
 
-			request.Method = Argument.NotNullOrEmpty(nameof(httpMethod), httpMethod);
+		internal string Get(string appMethod, Dictionary<string, string> queryStringParams, Dictionary<string, string> requestHeaders, bool sendCredentials,
+			bool base64Response = false)
+		{
+			return Request("GET", appMethod, queryStringParams, requestHeaders, sendCredentials, null, base64Response);
+		}
+
+		internal string Request(
+			string httpMethod, string appMethod,
+			Dictionary<string, string> queryStringParams,
+			Dictionary<string, string> requestHeaders,
+			bool sendCredentials, Stream data, bool base64Response = false)
+		{
 			if (httpMethod != "GET" && httpMethod != "POST")
 				throw new ApplicationException($"HTTP method '{httpMethod}' is not supported.");
+			Argument.NotNullOrEmpty(nameof(httpMethod), httpMethod);
+
+			var uri = BuildUri(_uri, appMethod, queryStringParams);
+			var request = WebRequest.Create(uri);
+			request.Method = httpMethod;
 
 			if (sendCredentials)
 			{
@@ -51,18 +68,11 @@ namespace Softengi.UbClient
 						return null;
 
 					if (base64Response)
-					{
 						using (var ms = new MemoryStream())
 						{
-							var chunk = new byte[4096];
-							int bytesRead;
-							while ((bytesRead = responseStream.Read(chunk, 0, chunk.Length)) > 0)
-							{
-								ms.Write(chunk, 0, bytesRead);
-							}
+							responseStream.CopyTo(ms);
 							return Convert.ToBase64String(ms.ToArray());
 						}
-					}
 
 					using (var reader = new StreamReader(responseStream))
 						return reader.ReadToEnd();
@@ -70,12 +80,16 @@ namespace Softengi.UbClient
 			}
 		}
 
-		static private Uri BuildUri(Uri baseUri, string uri, Dictionary<string, string> queryStringParams)
+		static internal Uri BuildUri(Uri baseUri, string relativeUri, Dictionary<string, string> queryStringParams)
 		{
-			var relativeUri = queryStringParams != null
+			return new Uri(baseUri, AppendQueryParamsToUri(relativeUri, queryStringParams));
+		}
+
+		static private string AppendQueryParamsToUri(string uri, Dictionary<string, string> queryStringParams)
+		{
+			return queryStringParams != null
 				? uri + "?" + QueryParamsToString(queryStringParams)
 				: uri;
-			return new Uri(baseUri, relativeUri);
 		}
 
 		static private string QueryParamsToString(Dictionary<string, string> queryStringParams)
@@ -84,5 +98,7 @@ namespace Softengi.UbClient
 				.Select(p => HttpUtility.UrlEncode(p.Key) + "=" + HttpUtility.UrlEncode(p.Value))
 				.Aggregate((current, next) => current + "&" + next);
 		}
+
+		private readonly Uri _uri;
 	}
 }

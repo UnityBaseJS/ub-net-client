@@ -99,11 +99,14 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthMethod.cs" />
     <Compile Include="Crc32Algorithm.cs" />
     <Compile Include="CryptoHelper.cs" />
     <Compile Include="Dto\RunListSetDocumentResponse.cs" />
     <Compile Include="Dto\UbDocumentInfo.cs" />
-    <Compile Include="HttpHelper.cs" />
+    <Compile Include="Sessions\UbAuthenticationMethodBase.cs" />
+    <Compile Include="Sessions\UbIpAuthenticationMethod.cs" />
+    <Compile Include="Sessions\UbTransport.cs" />
     <Compile Include="Linq\Evaluator.cs" />
     <Compile Include="Linq\ExpressionTreeHelpers.cs" />
     <Compile Include="Linq\ExpressionTreeModifier.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="Dto\RunListResponse.cs" />
     <Compile Include="Sessions\UbIpSession.cs" />
     <Compile Include="Sessions\UbNegotiateSession.cs" />
+    <Compile Include="Sessions\UbAuthenticationMethod.cs" />
     <Compile Include="UbAuthSchema.cs" />
     <Compile Include="UbConnection.cs" />
     <Compile Include="UbException.cs" />

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -21,7 +18,7 @@ namespace UbClient.UnitTests
 		[Test]
 		public void TestLinq()
 		{
-			var cn = new UbConnection(new Uri("http://localhost:888"), UbAuthSchema.UB, "admin", "admin");
+			var cn = new UbConnection(new Uri("http://localhost:888"), AuthMethod.Ub("admin", "admin"));
 			var queryable = cn.Query<Sample>("smp_sample");
 			var expr = from s in queryable
 					   where s.Name == "ttt1"

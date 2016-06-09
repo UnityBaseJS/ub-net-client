@@ -23,7 +23,7 @@ namespace Softengi.UbClient.Sessions
 		}
 
 		public string SessionID { get; }
-
+		 
 		protected virtual string Signature()
 		{
 			var timeStampI = (int) Math.Floor((DateTime.Now - _startTime).TotalSeconds);

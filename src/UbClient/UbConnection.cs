@@ -14,21 +14,17 @@ using Softengi.UbClient.Sessions;
 
 namespace Softengi.UbClient
 {
-	// TODO: handshake logic into the session classes
+	// TODO: merge session and authentication method into the same class
 	// TODO: query constructing syntax
 	// TODO: linq to UB
 
 	public class UbConnection
 	{
-		public UbConnection(Uri baseUri, UbAuthSchema authSchema, string login, string password)
+		public UbConnection(Uri baseUri, UbAuthenticationMethodBase authMethod)
 		{
+			_transport = new UbTransport(baseUri);
 			_baseUri = baseUri;
-			_authSchema = authSchema;
-			_login = login;
-			_password = password;
-
-			var localPath = baseUri.LocalPath;
-			_appName = localPath == "/" ? "/" : localPath.Trim('/').ToLower();
+			_authMethod = authMethod;
 		}
 
 		public IOrderedQueryable<T> Query<T>(string entityName)
@@ -223,99 +219,26 @@ namespace Softengi.UbClient
 
 		private void Auth()
 		{
-			_headersAuthorization = null;
-			_ubSession = null;
-
-			switch (_authSchema)
-			{
-				case UbAuthSchema.UB:
-					_ubSession = AuthHandshakeUb();
-					break;
-				case UbAuthSchema.Negotiate:
-					_ubSession = AuthHandshakeNegotiate();
-					break;
-				case UbAuthSchema.UBIP:
-					_ubSession = AuthHandshakeUbip();
-					break;
-				default:
-					throw new InvalidOperationException("Unknown authentication schema.");
-			}
-
-			if (_ubSession != null)
-				_headersAuthorization = _ubSession.AuthHeader();
-		}
-
-		private UbSession AuthHandshakeUb()
-		{
-			var firstQueryString =
-				new Dictionary<string, string>
-				{
-					{"AUTHTYPE", "UB"},
-					{"userName", _login},
-					{"password", string.Empty}
-				};
-			var firstResponse = Get<UbHandShakeAuthResponse>("auth", firstQueryString, false);
-
-			var clientNonce = CryptoHelper.Nsha256(DateTime.UtcNow.ToString("o").Substring(0, 16));
-			var serverNonce = firstResponse.Result;
-			if (string.IsNullOrEmpty(serverNonce))
-				throw new UbException("No server nonce.");
-
-			var pwdHash = CryptoHelper.Nsha256("salt" + _password);
-			var secretWord = pwdHash;
-			var pwdForAuth = CryptoHelper.Nsha256(_appName + serverNonce + clientNonce + _login + pwdHash);
-
-			var secondQueryString =
-				new Dictionary<string, string>
-				{
-					{"AUTHTYPE", "UB"},
-					{"userName", _login},
-					{"password", pwdForAuth},
-					{"clientNonce", clientNonce}
-				};
-			if (firstResponse.ConnectionID != null)
-				secondQueryString.Add("connectionID", firstResponse.ConnectionID);
-
-			var secondResonse = Get<AuthResponse>("auth", secondQueryString, true);
-
-			return new UbSession(UbAuthSchema.UB, secondResonse.LogonName, secretWord, secondResonse.SessionID);
-		}
-
-		private UbSession AuthHandshakeNegotiate()
-		{
-			var queryStringParams =
-				new Dictionary<string, string>
-				{
-					{"AUTHTYPE", "Negotiate"},
-					{"userName", string.Empty}
-				};
-			var resp = Get<AuthResponse>("auth", queryStringParams, true);
-			return new UbNegotiateSession(resp.LogonName, resp.SessionID);
-		}
-
-		private UbSession AuthHandshakeUbip()
-		{
-			_headersAuthorization = $"{_authSchema} {_login}";
-			var resp = Get<AuthResponse>("auth", null, false);
-			return new UbIpSession(resp.LogonName, resp.SecretWord, resp.SessionID);
-		}
-
-		private T Get<T>(string url, Dictionary<string, string> queryStringParams, bool sendCredentials,
-			bool base64Response = false)
-		{
-			return JsonConvert.DeserializeObject<T>(Get(url, queryStringParams, sendCredentials, base64Response));
+			_headersAuthorization = _authMethod.Authenticate(_transport).AuthHeader();
 		}
 
 		private string Get(string url, Dictionary<string, string> queryStringParams, bool sendCredentials,
 			bool base64Response = false)
 		{
-			return HttpHelper.Xhr(_baseUri, "GET", url, queryStringParams, GetRequestHeaders(), sendCredentials, null,
-				base64Response);
+			return Request("GET", url, queryStringParams, sendCredentials, null, base64Response);
 		}
 
 		private string Post(string url, Dictionary<string, string> queryStringParams = null, Stream data = null)
 		{
-			return HttpHelper.Xhr(_baseUri, "POST", url, queryStringParams, GetRequestHeaders(), false, data);
+			return Request("POST", url, queryStringParams, false, data);
+		}
+
+		private string Request(
+			string httpMethod, string appMethod,
+			Dictionary<string, string> queryStringParams,
+			bool sendCredentials, Stream data = null, bool base64Response = false)
+		{
+			return _transport.Request(httpMethod, appMethod, queryStringParams, GetRequestHeaders(), sendCredentials, data, base64Response);
 		}
 
 		private Dictionary<string, string> GetRequestHeaders()
@@ -325,18 +248,12 @@ namespace Softengi.UbClient
 				: null;
 		}
 
-		/// <summary>
-		/// Name of UB app, or "/", if UB hosted at root.
-		/// </summary>
-		private readonly string _appName;
-
-		private readonly UbAuthSchema _authSchema;
 		private readonly Uri _baseUri;
-		private readonly string _login;
-		private readonly string _password;
+		private readonly UbAuthenticationMethodBase _authMethod;
 
 		private string _headersAuthorization;
 		private UbSession _ubSession;
+		private readonly UbTransport _transport;
 
 		public class AuthResponse
 		{
@@ -363,16 +280,6 @@ namespace Softengi.UbClient
 
 			[JsonProperty("secretWord")]
 			public string SecretWord { get; set; }
-		}
-
-		public class UbHandShakeAuthResponse
-		{
-			[JsonProperty("result")]
-			public string Result { get; set; }
-
-			// TODO: obsolete?  used by cert method only?
-			[JsonProperty("connectionID")]
-			public string ConnectionID { get; set; }
 		}
 	}
 }
