@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using Softengi.UbClient.Dto;
+using Softengi.UbClient.Linq;
 using Softengi.UbClient.Sessions;
 
 namespace Softengi.UbClient
@@ -28,7 +29,7 @@ namespace Softengi.UbClient
 
 		public IOrderedQueryable<T> Query<T>(string entityName)
 		{
-			return new Linq.QueryableUbData<T>();
+			return new QueryableUbData<T>();
 		}
 
 		// TODO: remove method from here - parsing JSON is a different task
@@ -42,7 +43,7 @@ namespace Softengi.UbClient
 		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo,
 			bool base64Response = false)
 		{
-			if (!_isAuthenticated)
+			if (!IsAuthenticated)
 				Auth();
 
 			var documentQueryParams = new Dictionary<string, string>
@@ -152,14 +153,14 @@ namespace Softengi.UbClient
 				return JsonConvert.DeserializeObject<T[]>(Run("runList", null, stream));
 		}
 
-		public string Run(string ubAppMethod, Dictionary<string, string> queryStringParams, Stream data)
+		public string Run(string endPoint, Dictionary<string, string> queryStringParams, Stream data)
 		{
-			if (!_isAuthenticated)
+			if (!IsAuthenticated)
 				Auth();
 
 			try
 			{
-				return Post(ubAppMethod, queryStringParams, data);
+				return Post(endPoint, queryStringParams, data);
 			}
 			catch (WebException ex) when (ex.Status == WebExceptionStatus.ConnectFailure)
 			{
@@ -170,7 +171,7 @@ namespace Softengi.UbClient
 					try
 					{
 						Auth();
-						return Post(ubAppMethod, queryStringParams, data);
+						return Post(endPoint, queryStringParams, data);
 					}
 					catch (WebException excf)
 					{
@@ -184,8 +185,9 @@ namespace Softengi.UbClient
 			{
 				try
 				{
+					IsAuthenticated = false;
 					Auth();
-					return Post(ubAppMethod, queryStringParams, data);
+					return Post(endPoint, queryStringParams, data);
 				}
 				catch (WebException authRetryException)
 				{
@@ -194,7 +196,7 @@ namespace Softengi.UbClient
 			}
 			catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
 			{
-				throw new UbException(_baseUri, $"UnityBase does not support method '{ubAppMethod}'", ex);
+				throw new UbException(_baseUri, $"UnityBase does not support method '{endPoint}'", ex);
 			}
 			catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.InternalServerError)
 			{
@@ -204,47 +206,59 @@ namespace Softengi.UbClient
 
 		public RunListSetDocumentResponse SetDocument(string entity, string attribute, string fileName, long id, Stream data)
 		{
-			var urlParams = new Dictionary<string, string>
-			{
-				{"ID", id.ToString()},
-				{"ENTITY", entity},
-				{"ATTRIBUTE", attribute},
-				{"filename", fileName},
-				{"origName", fileName}
-			};
-			var response = Run("setDocument", urlParams, data);
+			var response = Run(
+				"setDocument",
+				new Dictionary<string, string>
+				{
+					{"ID", id.ToString()},
+					{"ENTITY", entity},
+					{"ATTRIBUTE", attribute},
+					{"filename", fileName},
+					{"origName", fileName}
+				},
+				data);
 			return JsonConvert.DeserializeObject<RunListSetDocumentResponse>(response);
 		}
+
+		/// <summary>
+		/// Returns <c>true</c>, if user is authenticated.
+		/// </summary>
+		/// <remarks>
+		/// The class uses lazy authentication, it authenticates user when any method which requires authentication is called.
+		/// This property allows to know the current state of the connection.
+		/// </remarks>
+		public bool IsAuthenticated { get; private set; }
 
 		private void Auth()
 		{
 			_auth.Authenticate(_transport);
-			_isAuthenticated = true;
+			IsAuthenticated = true;
 		}
 
-		private bool _isAuthenticated;
-
-		private string Get(string url, Dictionary<string, string> queryStringParams, bool sendCredentials,
+		private string Get(string endPoint, Dictionary<string, string> queryStringParams, bool sendCredentials,
 			bool base64Response = false)
 		{
-			return Request("GET", url, queryStringParams, sendCredentials, null, base64Response);
+			return Request("GET", endPoint, queryStringParams, sendCredentials, null, base64Response);
 		}
 
-		private string Post(string url, Dictionary<string, string> queryStringParams = null, Stream data = null)
+		private string Post(string endPoint, Dictionary<string, string> queryStringParams = null, Stream data = null)
 		{
-			return Request("POST", url, queryStringParams, false, data);
+			return Request("POST", endPoint, queryStringParams, false, data);
 		}
 
 		private string Request(
-			string httpMethod, string appMethod,
+			string httpMethod, string endPoint,
 			Dictionary<string, string> queryStringParams,
 			bool sendCredentials, Stream data = null, bool base64Response = false)
 		{
-			return _transport.Request(httpMethod, appMethod, queryStringParams, GetRequestHeaders(), sendCredentials, data, base64Response);
+			return _transport.Request(httpMethod, endPoint, queryStringParams, GetRequestHeaders(endPoint), sendCredentials, data,
+				base64Response);
 		}
 
-		private Dictionary<string, string> GetRequestHeaders()
+		private Dictionary<string, string> GetRequestHeaders(string endPoint)
 		{
+			if (!_authenticatedEndpoints.Contains(endPoint))
+				return null;
 			return new Dictionary<string, string> {{"Authorization", _auth.AuthHeader()}};
 		}
 
@@ -252,6 +266,15 @@ namespace Softengi.UbClient
 		private readonly AuthenticationBase _auth;
 		private readonly UbTransport _transport;
 
+		private readonly HashSet<string> _authenticatedEndpoints = new HashSet<string>
+		{
+			"runList",
+			"setDocument",
+			"getDocument",
+			"getDomainInfo"
+		};
+
+		/*
 		public class AuthResponse
 		{
 			[JsonProperty("result")]
@@ -277,6 +300,6 @@ namespace Softengi.UbClient
 
 			[JsonProperty("secretWord")]
 			public string SecretWord { get; set; }
-		}
+		}*/
 	}
 }

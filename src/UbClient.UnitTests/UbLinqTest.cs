@@ -18,9 +18,10 @@ namespace UbClient.UnitTests
 		[Test]
 		public void TestLinq()
 		{
-			var cn = new UbConnection(new Uri("http://localhost:888"), AuthMethod.Ub("admin", "admin"));
+			//var cn = new UbConnection(new Uri("http://localhost:888"), AuthMethod.Ub("admin", "admin"));
+			var cn = new UbConnection(new Uri("http://localhost:888"), AuthMethod.Kerberos());
 
-			var newId = cn.GetId("uba_user");
+			var newId = cn.GetId("ui_DataView");
 
 			var queryable = cn.Query<Sample>("smp_sample");
 			var expr = from s in queryable

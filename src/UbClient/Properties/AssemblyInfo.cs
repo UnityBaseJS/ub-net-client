@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("UB Client for .Net")]
+[assembly: AssemblyTitle("UnityBase .Net Client")]
 [assembly: AssemblyDescription(".Net library which allows connecting to UnityBase server.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Softengi")]

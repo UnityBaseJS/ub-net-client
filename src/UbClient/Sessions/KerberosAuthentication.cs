@@ -6,32 +6,23 @@ namespace Softengi.UbClient.Sessions
 {
 	internal class KerberosAuthentication : AuthenticationBase
 	{
-		internal KerberosAuthentication(string password)
-		{
-			_passwordHash = Crypto.Nsha256("salt" + password);
-		}
-
 		internal override void Authenticate(UbTransport transport)
 		{
-			var queryStringParams =
-				new Dictionary<string, string>
-				{
-					{"AUTHTYPE", "Negotiate"},
-					{"userName", string.Empty}
-				};
+			var queryStringParams = new Dictionary<string, string> {{"AUTHTYPE", "Negotiate"}};
 			var resp = transport.Get<NegotiateAuthResponse>("auth", queryStringParams, null, true);
-			_secretWord = resp.SessionID;
+			_sessionWord = resp.SessionID;
 			_sessionID = Crypto.Hexa8(resp.SessionID.Split('+')[0]);
+			_sessionPasswordHash = resp.LogonName;
 		}
 
 		internal override string AuthHeader()
 		{
-			return "Negotiate " + Crypto.Signature(_sessionID, _secretWord, _passwordHash);
+			return "Negotiate " + Crypto.Signature(_sessionID, _sessionWord, _sessionPasswordHash);
 		}
 
 		private string _sessionID;
-		private readonly string _passwordHash;
-		private string _secretWord;
+		private string _sessionPasswordHash;
+		private string _sessionWord;
 
 		public class NegotiateAuthResponse
 		{

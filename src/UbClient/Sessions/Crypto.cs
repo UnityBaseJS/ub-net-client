@@ -18,12 +18,12 @@ namespace Softengi.UbClient.Sessions
 				);
 		}
 
-		static public string Signature(string sessionID, string secretWord, string passwordHash)
+		static public string Signature(string sessionID, string sessionWord, string sessionPasswordHash)
 		{
 			var timeStampI = (int) Math.Floor((DateTime.Now - _startTime).TotalSeconds);
 			var hexaTime = timeStampI.ToString("x8");
 
-			return sessionID + hexaTime + Crc32(secretWord + passwordHash + hexaTime).ToString("x8");
+			return sessionID + hexaTime + Crc32(sessionWord + sessionPasswordHash + hexaTime).ToString("x8");
 		}
 
 		static public uint Crc32(string value)

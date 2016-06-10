@@ -23,10 +23,9 @@ namespace Softengi.UbClient
 			return new UbIpAuthentication(login);
 		}
 
-		// TODO: ???!!
-		static public AuthenticationBase Kerberos(string password)
+		static public AuthenticationBase Kerberos()
 		{
-			return new KerberosAuthentication(password);
+			return new KerberosAuthentication();
 		}
 
 		/*

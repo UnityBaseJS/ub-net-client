@@ -41,7 +41,7 @@ namespace Softengi.UbClient.Sessions
 			if (firstResponse.ConnectionID != null)
 				secondQueryString.Add("connectionID", firstResponse.ConnectionID);
 
-			var secondResonse = transport.Get<UbAuthSecondResponse>("auth", secondQueryString, null, true);
+			var secondResonse = transport.Get<UbAuthSecondResponse>("auth", secondQueryString, null, false);
 			_sessionID = Crypto.Hexa8(secondResonse.SessionID.Split('+')[0]);
 			_secretWord = secondResonse.SessionID;
 		}

@@ -13,9 +13,11 @@ namespace Softengi.UbClient.Dto
 		[JsonProperty("data")]
 		public object[][] Data { get; set; }
 
+		// TODO: remove
 		[JsonProperty("dataString")]
 		public string DataString { get; set; }
 
+		// TODO: remove
 		[JsonProperty("dataJson")]
 		public string DataJson { get; set; }
 	}
