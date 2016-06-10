@@ -8,4 +8,4 @@ It allows to build .Net application which may perform the following operations:
 * Execute custom entity methods
 * Work with documents.
 
-The project is available as NuGet packet.
+The project is available as [NuGet packet](https://www.nuget.org/packages/Softengi.UbClient/).
