@@ -23,7 +23,7 @@ namespace Softengi.UbClient.Sessions
 					{"userName", _login},
 					{"password", string.Empty}
 				};
-			var firstResponse = transport.Get<UbHandShakeAuthResponse>("auth", firstQueryString, null, false);
+			var firstResponse = transport.Get<UbHandShakeAuthResponse>("auth", firstQueryString, null, sendCredentials: false);
 
 			var clientNonce = Crypto.Nsha256(DateTime.UtcNow.ToString("o").Substring(0, 16));
 			var serverNonce = firstResponse.Result;
@@ -41,7 +41,7 @@ namespace Softengi.UbClient.Sessions
 			if (firstResponse.ConnectionID != null)
 				secondQueryString.Add("connectionID", firstResponse.ConnectionID);
 
-			var secondResonse = transport.Get<UbAuthSecondResponse>("auth", secondQueryString, null, false);
+			var secondResonse = transport.Get<UbAuthSecondResponse>("auth", secondQueryString, null, sendCredentials: false);
 			_sessionID = Crypto.Hexa8(secondResonse.SessionID.Split('+')[0]);
 			_secretWord = secondResonse.SessionID;
 		}

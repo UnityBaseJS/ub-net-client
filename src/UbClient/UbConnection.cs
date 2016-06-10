@@ -40,8 +40,7 @@ namespace Softengi.UbClient
 			return GetDocument(entityName, attributeName, id, documentInfo, base64Response);
 		}
 
-		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo,
-			bool base64Response = false)
+		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo, bool base64Response = false)
 		{
 			if (!IsAuthenticated)
 				Auth();
@@ -56,7 +55,7 @@ namespace Softengi.UbClient
 				{"filename", documentInfo.FileName}
 			};
 
-			return Get("getDocument", documentQueryParams, false, base64Response);
+			return Get("getDocument", documentQueryParams, base64Response);
 		}
 
 		public List<Dictionary<string, object>> Select(
@@ -150,17 +149,18 @@ namespace Softengi.UbClient
 		{
 			var requestBody = JArray.FromObject(data).ToString();
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(requestBody)))
-				return JsonConvert.DeserializeObject<T[]>(Run("runList", null, stream));
+				return JsonConvert.DeserializeObject<T[]>(Run("runList", stream));
 		}
 
-		public string Run(string endPoint, Dictionary<string, string> queryStringParams, Stream data)
+		// TODO: push handling of authentication (depending on endpoint) and handling of exceptions in some central place
+		public string Run(string endPoint, Stream data, Dictionary<string, string> queryStringParams = null)
 		{
 			if (!IsAuthenticated)
 				Auth();
 
 			try
 			{
-				return Post(endPoint, queryStringParams, data);
+				return Post(endPoint, data, queryStringParams);
 			}
 			catch (WebException ex) when (ex.Status == WebExceptionStatus.ConnectFailure)
 			{
@@ -171,13 +171,10 @@ namespace Softengi.UbClient
 					try
 					{
 						Auth();
-						return Post(endPoint, queryStringParams, data);
+						return Post(endPoint, data, queryStringParams);
 					}
-					catch (WebException excf)
-					{
-						if (excf.Status != WebExceptionStatus.ConnectFailure)
-							break;
-					}
+					catch (WebException excf) when (excf.Status == WebExceptionStatus.ConnectFailure)
+					{}
 				}
 				throw;
 			}
@@ -187,7 +184,7 @@ namespace Softengi.UbClient
 				{
 					IsAuthenticated = false;
 					Auth();
-					return Post(endPoint, queryStringParams, data);
+					return Post(endPoint, data, queryStringParams);
 				}
 				catch (WebException authRetryException)
 				{
@@ -204,20 +201,22 @@ namespace Softengi.UbClient
 			}
 		}
 
-		public RunListSetDocumentResponse SetDocument(string entity, string attribute, string fileName, long id, Stream data)
+		public SetDocumentResponse SetDocument(string entity, string attribute, string fileName, long id, Stream data)
 		{
-			var response = Run(
-				"setDocument",
-				new Dictionary<string, string>
-				{
-					{"ID", id.ToString()},
-					{"ENTITY", entity},
-					{"ATTRIBUTE", attribute},
-					{"filename", fileName},
-					{"origName", fileName}
-				},
-				data);
-			return JsonConvert.DeserializeObject<RunListSetDocumentResponse>(response);
+			var response = Run("setDocument", data, CreateSetDocumentParams(entity, attribute, id, fileName));
+			return JsonConvert.DeserializeObject<SetDocumentResponse>(response);
+		}
+
+		static private Dictionary<string, string> CreateSetDocumentParams(string entity, string attribute, long id, string fileName)
+		{
+			return new Dictionary<string, string>
+			{
+				{"ID", id.ToString()},
+				{"ENTITY", entity},
+				{"ATTRIBUTE", attribute},
+				{"filename", fileName},
+				{"origName", fileName}
+			};
 		}
 
 		/// <summary>
@@ -235,24 +234,22 @@ namespace Softengi.UbClient
 			IsAuthenticated = true;
 		}
 
-		private string Get(string endPoint, Dictionary<string, string> queryStringParams, bool sendCredentials,
-			bool base64Response = false)
+		private string Get(string endPoint, Dictionary<string, string> queryStringParams, bool base64Response = false)
 		{
-			return Request("GET", endPoint, queryStringParams, sendCredentials, null, base64Response);
+			return Request("GET", endPoint, queryStringParams, null, base64Response);
 		}
 
-		private string Post(string endPoint, Dictionary<string, string> queryStringParams = null, Stream data = null)
+		private string Post(string endPoint, Stream data = null, Dictionary<string, string> queryStringParams = null)
 		{
-			return Request("POST", endPoint, queryStringParams, false, data);
+			return Request("POST", endPoint, queryStringParams, data);
 		}
 
 		private string Request(
 			string httpMethod, string endPoint,
 			Dictionary<string, string> queryStringParams,
-			bool sendCredentials, Stream data = null, bool base64Response = false)
+			Stream data = null, bool base64Response = false)
 		{
-			return _transport.Request(httpMethod, endPoint, queryStringParams, GetRequestHeaders(endPoint), sendCredentials, data,
-				base64Response);
+			return _transport.Request(httpMethod, endPoint, queryStringParams, GetRequestHeaders(endPoint), data, base64Response);
 		}
 
 		private Dictionary<string, string> GetRequestHeaders(string endPoint)

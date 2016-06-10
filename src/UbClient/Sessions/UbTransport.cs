@@ -17,26 +17,21 @@ namespace Softengi.UbClient.Sessions
 			_uri = uri;
 		}
 
-		internal T Get<T>(
-			string appMethod,
-			Dictionary<string, string> queryStringParams,
-			Dictionary<string, string> requestHeaders,
-			bool sendCredentials, bool base64Response = false)
+		internal T Get<T>(string appMethod, Dictionary<string, string> queryStringParams,
+			Dictionary<string, string> requestHeaders, bool base64Response = false, bool sendCredentials = false)
 		{
-			return JsonConvert.DeserializeObject<T>(Get(appMethod, queryStringParams, requestHeaders, sendCredentials, base64Response));
+			var result = Get(appMethod, queryStringParams, requestHeaders, base64Response, sendCredentials);
+			return JsonConvert.DeserializeObject<T>(result);
 		}
 
-		internal string Get(string appMethod, Dictionary<string, string> queryStringParams, Dictionary<string, string> requestHeaders, bool sendCredentials,
-			bool base64Response = false)
+		internal string Get(string appMethod, Dictionary<string, string> queryStringParams,
+			Dictionary<string, string> requestHeaders, bool base64Response = false, bool sendCredentials = false)
 		{
-			return Request("GET", appMethod, queryStringParams, requestHeaders, sendCredentials, null, base64Response);
+			return Request("GET", appMethod, queryStringParams, requestHeaders, null, base64Response, sendCredentials);
 		}
 
-		internal string Request(
-			string httpMethod, string appMethod,
-			Dictionary<string, string> queryStringParams,
-			Dictionary<string, string> requestHeaders,
-			bool sendCredentials, Stream data, bool base64Response = false)
+		internal string Request(string httpMethod, string appMethod, Dictionary<string, string> queryStringParams,
+			Dictionary<string, string> requestHeaders, Stream data, bool base64Response = false, bool sendCredentials = false)
 		{
 			if (httpMethod != "GET" && httpMethod != "POST")
 				throw new ApplicationException($"HTTP method '{httpMethod}' is not supported.");

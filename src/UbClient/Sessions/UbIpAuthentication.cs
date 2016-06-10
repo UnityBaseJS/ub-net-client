@@ -14,7 +14,7 @@ namespace Softengi.UbClient.Sessions
 		internal override void Authenticate(UbTransport transport)
 		{
 			var requestHeaders = new Dictionary<string, string> {{"Authorization", $"UBIP {_login}"}};
-			var resp = transport.Get<UbIpAuthResponse>("auth", null, requestHeaders, false);
+			var resp = transport.Get<UbIpAuthResponse>("auth", null, requestHeaders, sendCredentials: false);
 			_login = resp.LogonName;
 		}
 

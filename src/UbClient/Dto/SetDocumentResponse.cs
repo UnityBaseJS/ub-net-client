@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace Softengi.UbClient.Dto
 {
-	public class RunListSetDocumentResponse
+	public class SetDocumentResponse
 	{
 		[JsonProperty("success")]
 		public bool Success { get; set; }

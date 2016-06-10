@@ -12,9 +12,6 @@ namespace Softengi.UbClient
 		/// <param name="appName">Name of UB app, or "/", if UB hosted at root.</param>
 		static public AuthenticationBase Ub(string login, string password, string appName = "/")
 		{
-			//var localPath = baseUri.LocalPath;
-			//appName = localPath == "/" ? "/" : localPath.Trim('/').ToLower();
-
 			return new UbAuthentication(login, password, appName);
 		}
 

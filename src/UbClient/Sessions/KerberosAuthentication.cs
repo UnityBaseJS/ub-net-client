@@ -9,7 +9,7 @@ namespace Softengi.UbClient.Sessions
 		internal override void Authenticate(UbTransport transport)
 		{
 			var queryStringParams = new Dictionary<string, string> {{"AUTHTYPE", "Negotiate"}};
-			var resp = transport.Get<NegotiateAuthResponse>("auth", queryStringParams, null, true);
+			var resp = transport.Get<NegotiateAuthResponse>("auth", queryStringParams, null, sendCredentials: true);
 			_sessionWord = resp.SessionID;
 			_sessionID = Crypto.Hexa8(resp.SessionID.Split('+')[0]);
 			_sessionPasswordHash = resp.LogonName;

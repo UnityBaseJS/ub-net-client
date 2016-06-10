@@ -101,7 +101,7 @@
   <ItemGroup>
     <Compile Include="AuthMethod.cs" />
     <Compile Include="Sessions\Crc32Algorithm.cs" />
-    <Compile Include="Dto\RunListSetDocumentResponse.cs" />
+    <Compile Include="Dto\SetDocumentResponse.cs" />
     <Compile Include="Dto\UbDocumentInfo.cs" />
     <Compile Include="Sessions\AuthenticationBase.cs" />
     <Compile Include="Sessions\Crypto.cs" />
