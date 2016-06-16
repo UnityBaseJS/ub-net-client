@@ -32,30 +32,44 @@ namespace Softengi.UbClient
 			return new QueryableUbData<T>();
 		}
 
-		// TODO: remove method from here - parsing JSON is a different task
-		public string GetDocument(string entityName, string attributeName, long id, string documentInfoStr,
-			bool base64Response = false)
+		public UbDocumentInfo SelectDocumentInfo(string entityName, string attributeName, long id)
 		{
-			var documentInfo = JsonConvert.DeserializeObject<UbDocumentInfo>(documentInfoStr);
-			return GetDocument(entityName, attributeName, id, documentInfo, base64Response);
+			var result = SelectByID(entityName, new[] {attributeName}, id);
+			return JsonConvert.DeserializeObject<UbDocumentInfo>((string) result[attributeName]);
 		}
 
-		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo, bool base64Response = false)
+		public string GetDocument(string entityName, string attributeName, long id, UbDocumentInfo documentInfo = null, bool base64Response = false)
 		{
 			if (!IsAuthenticated)
 				Auth();
 
-			var documentQueryParams = new Dictionary<string, string>
+			var docInfo = documentInfo ?? SelectDocumentInfo(entityName, attributeName, id);
+
+			var queryStringParams = new Dictionary<string, string>
 			{
 				{"entity", entityName},
 				{"attribute", attributeName},
 				{"ID", id.ToString()},
-				{"store", documentInfo.Store},
-				{"origName", documentInfo.OriginalName},
-				{"filename", documentInfo.FileName}
+				{"store", docInfo.Store},
+				{"origName", docInfo.OriginalName},
+				{"filename", docInfo.FileName}
 			};
 
-			return Get("getDocument", documentQueryParams, base64Response);
+			return Get("getDocument", queryStringParams, base64Response);
+		}
+
+		public SetDocumentResponse SetDocument(string entity, string attribute, string fileName, long id, Stream data)
+		{
+			var queryStringParams = new Dictionary<string, string>
+			{
+				{"ID", id.ToString()},
+				{"ENTITY", entity},
+				{"ATTRIBUTE", attribute},
+				{"filename", fileName},
+				{"origName", fileName}
+			};
+			var response = Run("setDocument", data, queryStringParams);
+			return JsonConvert.DeserializeObject<SetDocumentResponse>(response);
 		}
 
 		public List<Dictionary<string, object>> Select(
@@ -199,24 +213,6 @@ namespace Softengi.UbClient
 			{
 				throw new UbException(_baseUri, "Error", ex);
 			}
-		}
-
-		public SetDocumentResponse SetDocument(string entity, string attribute, string fileName, long id, Stream data)
-		{
-			var response = Run("setDocument", data, CreateSetDocumentParams(entity, attribute, id, fileName));
-			return JsonConvert.DeserializeObject<SetDocumentResponse>(response);
-		}
-
-		static private Dictionary<string, string> CreateSetDocumentParams(string entity, string attribute, long id, string fileName)
-		{
-			return new Dictionary<string, string>
-			{
-				{"ID", id.ToString()},
-				{"ENTITY", entity},
-				{"ATTRIBUTE", attribute},
-				{"filename", fileName},
-				{"origName", fileName}
-			};
 		}
 
 		/// <summary>

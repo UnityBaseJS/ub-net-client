@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/UnityBaseJS/ub-net-client/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/UnityBaseJS/ub-net-client</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>UnityBase .Net Client release.</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>UnityBase</tags>
+  </metadata>
+</package>

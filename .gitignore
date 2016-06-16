@@ -4,3 +4,4 @@ _ReSharper.Caches/
 bin/
 obj/
 packages/
+/src/UbClient/Softengi.UbClient.1.0.0.0.nupkg
