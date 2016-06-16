@@ -4,12 +4,11 @@ namespace Softengi.UbClient.Configuration
 {
 	public class UnityBaseConnectionConfiguration : ConfigurationElement
 	{
-		[ConfigurationProperty("baseUri", DefaultValue = "http://localhost:888", IsRequired = true)]
-		[RegexStringValidator(@"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$")]
+		[ConfigurationProperty("baseUri", DefaultValue = "http://localhost:888/", IsRequired = true)]
+		[RegexStringValidator(@"^http:\/\/.+$")]
 		public string BaseUri => (string) base["baseUri"];
 
-		[ConfigurationProperty("authenticationMethod", DefaultValue = "admin", IsRequired = true)]
-		[StringValidator(MinLength = 2)]
+		[ConfigurationProperty("authenticationMethod", DefaultValue = "ub", IsRequired = true)]
 		[RegexStringValidator("^(ub|ubip|negotiate)$")]
 		public string AuthenticationMethod => (string) base["authenticationMethod"];
 

@@ -7,7 +7,7 @@ namespace Softengi.UbClient.Configuration
 		[ConfigurationProperty("connection")]
 		public UnityBaseConnectionConfiguration Connection
 		{
-			get { return (UnityBaseConnectionConfiguration)this["connection"]; }
+			get { return (UnityBaseConnectionConfiguration) this["connection"]; }
 			set { this["connection"] = value; }
 		}
 	}

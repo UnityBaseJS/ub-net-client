@@ -28,9 +28,14 @@ namespace Softengi.UbClient
 		public UbConnection(Uri baseUri, AuthenticationBase auth)
 		{
 			_transport = new UbTransport(baseUri);
-			_baseUri = baseUri;
+			BaseUri = baseUri;
 			_auth = auth;
 		}
+
+		/// <summary>
+		/// Base Uri used for connection to UnityBase server.
+		/// </summary>
+		public Uri BaseUri { get; }
 
 		public IOrderedQueryable<T> Query<T>(string entityName)
 		{
@@ -207,16 +212,16 @@ namespace Softengi.UbClient
 				}
 				catch (WebException authRetryException)
 				{
-					throw new UbException(_baseUri, "Authentication error", authRetryException);
+					throw new UbException(BaseUri, "Authentication error", authRetryException);
 				}
 			}
 			catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
 			{
-				throw new UbException(_baseUri, $"UnityBase does not support method '{endPoint}'", ex);
+				throw new UbException(BaseUri, $"UnityBase does not support method '{endPoint}'", ex);
 			}
 			catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.InternalServerError)
 			{
-				throw new UbException(_baseUri, "Error", ex);
+				throw new UbException(BaseUri, "Error", ex);
 			}
 		}
 
@@ -255,12 +260,11 @@ namespace Softengi.UbClient
 
 		private Dictionary<string, string> GetRequestHeaders(string endPoint)
 		{
-			if (!_authenticatedEndpoints.Contains(endPoint))
-				return null;
-			return new Dictionary<string, string> {{"Authorization", _auth.AuthHeader()}};
+			return _authenticatedEndpoints.Contains(endPoint)
+				? new Dictionary<string, string> {{"Authorization", _auth.AuthHeader()}}
+				: null;
 		}
 
-		private readonly Uri _baseUri;
 		private readonly AuthenticationBase _auth;
 		private readonly UbTransport _transport;
 
