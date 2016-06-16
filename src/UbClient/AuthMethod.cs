@@ -1,9 +1,29 @@
-﻿using Softengi.UbClient.Sessions;
+﻿using System;
+
+using Softengi.UbClient.Configuration;
+using Softengi.UbClient.Sessions;
 
 namespace Softengi.UbClient
 {
 	static public class AuthMethod
 	{
+		static public AuthenticationBase FromConfig(UnityBaseConnectionConfiguration ubConnectionConfig)
+		{
+			Argument.NotNull(nameof(ubConnectionConfig), ubConnectionConfig);
+
+			switch (ubConnectionConfig.AuthenticationMethod)
+			{
+				case "ub":
+					return Ub(ubConnectionConfig.UserName, ubConnectionConfig.Password);
+				case "ubip":
+					return UbIp(ubConnectionConfig.UserName);
+				case "negotiate":
+					return Kerberos();
+				default:
+					throw new ArgumentOutOfRangeException(nameof(ubConnectionConfig), $"Authentication method '{ubConnectionConfig.AuthenticationMethod}' is not supported.");
+			}
+		}
+
 		/// <summary>
 		/// Create UB authentication method.
 		/// </summary>

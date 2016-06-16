@@ -5,3 +5,5 @@ bin/
 obj/
 packages/
 /src/UbClient/Softengi.UbClient.1.0.0.0.nupkg
+/src/UbClient/Softengi.UbClient.1.0.0.1.nupkg
+*.nupkg

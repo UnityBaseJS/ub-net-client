@@ -9,6 +9,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Softengi.UbClient.Configuration;
 using Softengi.UbClient.Dto;
 using Softengi.UbClient.Linq;
 using Softengi.UbClient.Sessions;
@@ -20,6 +21,10 @@ namespace Softengi.UbClient
 
 	public class UbConnection
 	{
+		public UbConnection(UnityBaseConnectionConfiguration ubConnectionConfiguration) :
+			this(new Uri(ubConnectionConfiguration.BaseUri), AuthMethod.FromConfig(ubConnectionConfiguration))
+		{}
+
 		public UbConnection(Uri baseUri, AuthenticationBase auth)
 		{
 			_transport = new UbTransport(baseUri);

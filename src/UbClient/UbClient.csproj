@@ -91,6 +91,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -100,6 +101,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthMethod.cs" />
+    <Compile Include="Configuration\UnityBaseConfigurationSection.cs" />
+    <Compile Include="Configuration\UnityBaseConnectionConfiguration.cs" />
     <Compile Include="Sessions\Crc32Algorithm.cs" />
     <Compile Include="Dto\SetDocumentResponse.cs" />
     <Compile Include="Dto\UbDocumentInfo.cs" />
