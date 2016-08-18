@@ -173,7 +173,7 @@ namespace Softengi.UbClient
 		{
 			var requestBody = JArray.FromObject(data).ToString();
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(requestBody)))
-				return JsonConvert.DeserializeObject<T[]>(Run("runList", stream));
+				return JsonConvert.DeserializeObject<T[]>(Run("ubql", stream));
 		}
 
 		// TODO: push handling of authentication (depending on endpoint) and handling of exceptions in some central place
